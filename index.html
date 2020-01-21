@@ -17,12 +17,12 @@
       </nav>
 
       <!-- timer -->
-      <div id="timer">0</div>
+      <div id="time">Time: <span id="timer">0</span></div>
     </header>
 
     <main class="container">
       <!-- this will be hidden on start -->
-      <div id="start-page">
+      <div id="start-section" class="">
         <h1>Coding Quiz Challenge</h1>
         <p>
           Lorem ipsum dolor sit amet consectetur, adipisicing elit. Soluta distinctio ex dicta voluptate laborum enim.
@@ -31,17 +31,17 @@
           odit debitis aspernatur! Sit tempore non impedit itaque.
         </p>
 
-        <button>Start Quiz!</button>
+        <button id="start">Start Quiz!</button>
       </div>
 
       <!-- questions -->
-      <div class="question-section">
-        <h3 id="question"></h3>
+      <div id="question-section" class="hidden">
+        <h3 id="question">hello</h3>
         <ul id="answers"></ul>
       </div>
 
       <!-- input scores  -->
-      <div id="score-section">
+      <div id="score-section" class="hidden">
         <h3>All Done!</h3>
         <p>Your final score is <span class="score"></span></p>
         <label for="intials"></label>
@@ -50,12 +50,14 @@
       </div>
 
       <!-- leaderboard -->
-      <div id="leaderboard-section">
+      <div id="leaderboard-section" class="hidden">
         <h3>HighScores</h3>
         <ul class="scores-list"></ul>
         <button>Go Back</button>
         <button>Clear High Scores</button>
       </div>
     </main>
+
+    <script src="assets/js/app.js"></script>
   </body>
 </html>
