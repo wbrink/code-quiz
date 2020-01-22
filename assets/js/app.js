@@ -4,6 +4,7 @@ var scoreSpan = document.querySelector(".score");
 
 var questionHeading = document.querySelector("#question");
 var answerList = document.querySelector("#answers")
+var answerResult = document.querySelector("answer-result");
 
 // main sections of page
 var startSection = document.querySelector("#start-section");
@@ -48,6 +49,7 @@ var questionsArray = [
 
 // start button listener
 startButton.addEventListener("click", (e) => {
+  randomizeQuestionsAnswers(); // shuffle quesitons array
   startSection.classList.add("hidden"); // hide current section
   questionSection.classList.remove("hidden"); // show #question-section
 
@@ -70,7 +72,7 @@ function startTimer() {
       scoreSpan.textContent = score;
       return;
     }
-    // 
+    
     time--;
     timerSpan.textContent = time;
   }, 1000); // every second;
@@ -79,7 +81,7 @@ function startTimer() {
 
 // shows first question
 function startGame() {
-  question = 0; 
+  questionCounter = 0; 
   questionHeading.textContent = questionsArray[0].question;
   
   for (var i = 0; i < questionsArray[0].choices.length; i++) {
@@ -91,13 +93,31 @@ function startGame() {
 
 }
 
+// randomizes the questionsArray 
 function randomizeQuestionsAnswers() {
   // randomizes order of questions and answers in questionsArray
+  questionsArray.sort(function(a,b) {return 0.5 - Math.random()});
+
+  // randomly sort choices array for each question
+  for (var i = 0; i < questionsArray.length; i++) {
+    questionsArray[i].choices.sort(function(a,b) {return 0.5 - Math.random()});
+  }
 }
 
 
 function answerClick(event) {
-  // add to score then go move to next question
+  var elem = event.target;
+  if (elem.matches("li")) {
+    if (elem.textContent === questionsArray[questionCounter].answer) {
+      answerResult.textContent = "Correct!"
+      right++;
+    } else {
+      // write incorrect and move on
+      answerResult.textContent = "Wrong";
+      wrong++;
+    }
+    questionCounter++;
+  }
 }
 
 answerList.addEventListener("click", answerClick);
