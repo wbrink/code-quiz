@@ -4,7 +4,7 @@ var scoreSpan = document.querySelector(".score");
 
 var questionHeading = document.querySelector("#question");
 var answerList = document.querySelector("#answers")
-var answerResult = document.querySelector("answer-result");
+var answerResult = document.querySelector("#answer-result");
 
 // main sections of page
 var startSection = document.querySelector("#start-section");
@@ -18,12 +18,11 @@ var right = 0;
 var wrong = 0;
 
 var interval;
-var time = 5;
+var time = 30;
 var score = 70;
 
 
-
-//array of question objects
+//array of objects for questions
 var questionsArray = [
   {
     question: "Commonly used data types DO NOT include:",
@@ -60,16 +59,12 @@ startButton.addEventListener("click", (e) => {
 
 
 function startTimer() {
-  startGame(); // start the questions
+  questionCounter = 0;
+  renderQuestion(questionCounter); // start the questions
   interval = setInterval(function() {
     // if times up: cleanup and show scoresection with score
     if (time === 0) {
-      console.log("times up")
-      clearInterval(interval); 
-      // show scoresection
-      questionSection.classList.add("hidden");
-      scoreSection.classList.remove("hidden");
-      scoreSpan.textContent = score;
+      renderScore();
       return;
     }
     
@@ -79,25 +74,49 @@ function startTimer() {
 } //end timer
 
 
-// shows first question
-function startGame() {
-  questionCounter = 0; 
-  questionHeading.textContent = questionsArray[0].question;
-  
-  for (var i = 0; i < questionsArray[0].choices.length; i++) {
-    var li = document.createElement("li");
-    li.id = i;
-    li.textContent = questionsArray[0].choices[i];
-    answerList.append(li);
-  }
+// renders score section
+function renderScore() {
+  clearInterval(interval); // stop timer
+  questionSection.classList.add("hidden");
+  scoreSection.classList.remove("hidden");
+  scoreSpan.textContent = `Right: ${right}    Wrong: ${wrong} `;
 
 }
+
+
+// renders question and choices takes in index 
+function renderQuestion(index) { 
+  // if quiz is completed
+  if (questionCounter === questionsArray.length) {
+    renderScore();
+    return;
+  } else {
+    questionHeading.textContent = questionsArray[index].question;
+  
+    for (var i = 0; i < questionsArray[index].choices.length; i++) {
+      var li = document.createElement("li");
+      li.id = i;
+      li.textContent = questionsArray[index].choices[i];
+      answerList.append(li);
+    }
+  } // end else
+} // end renderQuestion()
+
+
+// removes choices that were generated for question
+function removeList() {
+  // undefined if is falsy
+  while (answerList.lastChild) {
+    answerList.removeChild(answerList.lastChild);
+  }
+  console.log("removed children");
+}
+
 
 // randomizes the questionsArray 
 function randomizeQuestionsAnswers() {
   // randomizes order of questions and answers in questionsArray
   questionsArray.sort(function(a,b) {return 0.5 - Math.random()});
-
   // randomly sort choices array for each question
   for (var i = 0; i < questionsArray.length; i++) {
     questionsArray[i].choices.sort(function(a,b) {return 0.5 - Math.random()});
@@ -117,6 +136,8 @@ function answerClick(event) {
       wrong++;
     }
     questionCounter++;
+    removeList();
+    renderQuestion(questionCounter);
   }
 }
 
