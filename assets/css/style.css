@@ -12,3 +12,14 @@ body {
 .hidden {
   display: none;
 }
+
+.btn-choice {
+  width: 320px;
+  text-align: start;
+}
+
+@media screen and (max-width: 320px) {
+  .btn-choice {
+    width: 290px;
+  }
+}

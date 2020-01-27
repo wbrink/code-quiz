@@ -10,12 +10,16 @@ var answerResult = document.querySelector("#answer-result");
 var initialsForm = document.querySelector("#initials-form");
 var initialsInput = document.querySelector("#initials");
 
+var viewLeaderboard = document.querySelector("#view-leaderboard"); // link to view leaderboard
+
 // main sections of page
 var startSection = document.querySelector("#start-section");
 var questionSection = document.querySelector("#question-section");
 var scoreSection = document.querySelector("#score-section");
 var leaderboardSection = document.querySelector("#leaderboard-section");
-var leaderList = document.querySelector(".leader-list");
+
+// leaderboard section
+var leaderTBody = document.querySelector("#leader-table-body");
 var clearLeadersButton = document.querySelector("#clear-leaderboard");
 var goBackButton = document.querySelector("#go-back");
 
@@ -33,6 +37,15 @@ var playerScore = 0;
 var perQuestionTimer = 15;
 
 var leaderboard;
+
+//handle leaderboard
+leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
+
+if (leaderboard) {
+  sortLeaderboard();
+} else {
+  leaderboard = [];
+}
 
 //array of objects for questions
 var questionsArray = [
@@ -57,7 +70,7 @@ var questionsArray = [
     answer: "console.log"
   },
   {
-    question: "What is the name of a function parameter that takes a function",
+    question: "What is the name of a function parameter that takes a function?",
     choices: ["callback", "anonymous", "event handler", "alert"],
     answer: "callback"
   }
@@ -65,6 +78,10 @@ var questionsArray = [
 
 // start button listener
 startButton.addEventListener("click", e => {
+  playerScore = 0;
+  perQuestionTimer = 15;
+  time = 75;
+
   //handle leaderboard
   leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
 
@@ -79,6 +96,7 @@ startButton.addEventListener("click", e => {
   questionSection.classList.remove("hidden"); // show #question-section
 
   timerSpan.textContent = time;
+  answerResult.textContent = "";
 
   startTimer();
 });
@@ -118,9 +136,25 @@ function renderQuestion(index) {
     questionHeading.textContent = questionsArray[index].question;
 
     for (var i = 0; i < questionsArray[index].choices.length; i++) {
+      var prepend;
       var li = document.createElement("li");
       li.id = i;
-      li.textContent = questionsArray[index].choices[i];
+      li.setAttribute("choice", questionsArray[index].choices[i]);
+      li.className = "btn btn-primary btn-sm mb-3 btn-choice d-block";
+      if (i == 0) {
+        prepend = "A.  ";
+      }
+      if (i == 1) {
+        prepend = "B.  ";
+      }
+      if (i == 2) {
+        prepend = "C.  ";
+      }
+      if (i == 3) {
+        prepend = "D.  ";
+      }
+
+      li.textContent = prepend + "\xa0\xa0" + questionsArray[index].choices[i];
       answerList.append(li);
     }
   }
@@ -130,10 +164,10 @@ function renderQuestion(index) {
   perQuestionInterval = setInterval(function() {
     if (perQuestionTimer == 0) {
       clearInterval(perQuestionInterval);
-      console.log("here");
+      //console.log("here");
     }
     perQuestionTimer--;
-    console.log(perQuestionTimer);
+    //console.log(perQuestionTimer);
   }, 1000);
 }
 
@@ -164,7 +198,7 @@ function answerClick(event) {
   clearInterval(perQuestionInterval);
   var elem = event.target;
   if (elem.matches("li")) {
-    if (elem.textContent === questionsArray[questionCounter].answer) {
+    if (elem.getAttribute("choice") === questionsArray[questionCounter].answer) {
       answerResult.textContent = "Correct!";
       if (perQuestionTimer >= 5) {
         playerScore += 20; // 20 points for answering correct within 10 seconds
@@ -193,12 +227,12 @@ initialsForm.addEventListener("submit", e => {
 
   if (leaderboard.length < 50) {
     leaderboard.push({ name: playerName, score: playerScore });
-    console.log("added");
+    //console.log("added");
   } else {
     if (playerScore > parseInt(leaderboard[leaderboard.length - 1].score)) {
       leaderboard.pop();
       leaderboard.push({ name: playerName, score: playerScore });
-      console.log("added");
+      //console.log("added");
     }
   }
   sortLeaderboard();
@@ -211,18 +245,20 @@ initialsForm.addEventListener("submit", e => {
 });
 
 function renderLeaderboard() {
-  time = 30;
+  removeAllChildren(leaderTBody);
   for (var i = 0; i < leaderboard.length; i++) {
-    var li = document.createElement("li");
-    li.setAttribute("data-index", i);
-    li.textContent = leaderboard[i].name;
-    var span = document.createElement("span");
-    span.textContent = leaderboard[i].score;
-    li.append(span);
-    leaderList.append(li);
-  }
+    var tr = document.createElement("tr");
+    var th = document.createElement("th");
+    th.setAttribute("scope", "row");
+    th.textContent = i + 1;
+    var tdName = document.createElement("td");
+    tdName.textContent = leaderboard[i].name;
+    var tdScore = document.createElement("td");
+    tdScore.textContent = leaderboard[i].score;
 
-  console.log(leaderboard);
+    tr.append(th, tdName, tdScore);
+    leaderTBody.append(tr);
+  }
 }
 
 // has to be sorted in descending order
@@ -240,17 +276,31 @@ function sortLeaderboard() {
 
 clearLeadersButton.addEventListener("click", e => {
   localStorage.removeItem("leaderboard");
-  // console.log("leaderboard cleared");
-  removeAllChildren(leaderList);
+  removeAllChildren(leaderTBody);
 });
 
 goBackButton.addEventListener("click", function(e) {
   leaderboardSection.classList.add("hidden");
   startSection.classList.remove("hidden");
+  timerSpan.textContent = 0;
 });
 
 function removeAllChildren(element) {
-  while (element.lastChild) {
-    element.removeChild(element.lastChild);
+  if (element.lastChild) {
+    while (element.lastChild) {
+      element.removeChild(element.lastChild);
+    }
+  } else {
+    return;
   }
 }
+
+viewLeaderboard.addEventListener("click", e => {
+  e.stopPropagation();
+  e.preventDefault();
+  startSection.classList.add("hidden");
+  questionSection.classList.add("hidden");
+  scoreSection.classList.add("hidden");
+  renderLeaderboard();
+  leaderboardSection.classList.remove("hidden");
+});
