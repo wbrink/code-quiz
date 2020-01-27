@@ -1,26 +1,32 @@
+// DOM variables
 var startButton = document.querySelector("#start"); // button on start screen that starts quiz
 var timerSpan = document.querySelector("#timer");
 var scoreSpan = document.querySelector(".score");
 
 var questionHeading = document.querySelector("#question");
-var answerList = document.querySelector("#answers")
+var answerList = document.querySelector("#answers");
 var answerResult = document.querySelector("#answer-result");
+
+var initialsForm = document.querySelector("#initials-form");
+var initialsInput = document.querySelector("#initials");
 
 // main sections of page
 var startSection = document.querySelector("#start-section");
 var questionSection = document.querySelector("#question-section");
 var scoreSection = document.querySelector("#score-section");
 var leaderboardSection = document.querySelector("#leaderboard-section");
+var leaderList = document.querySelector(".leader-list");
 
-
+// app variables
 var questionCounter = 0;
-var right = 0;
-var wrong = 0;
+var right = 0; // answered correctly
+var wrong = 0; // answered incorrectly
 
 var interval;
-var time = 30;
-var score = 70;
+var time = 30; //in seconds
+var playerScore = 0;
 
+var leaderboard;
 
 //array of objects for questions
 var questionsArray = [
@@ -44,10 +50,19 @@ var questionsArray = [
     choices: ["JavaScript", "terminal/bash", "for loops", "console.log"],
     answer: "console.log"
   }
-]
+];
 
 // start button listener
-startButton.addEventListener("click", (e) => {
+startButton.addEventListener("click", e => {
+  //handle leaderboard
+  leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
+
+  if (leaderboard) {
+    sortLeaderboard();
+  } else {
+    leaderboard = [];
+  }
+
   randomizeQuestionsAnswers(); // shuffle quesitons array
   startSection.classList.add("hidden"); // hide current section
   questionSection.classList.remove("hidden"); // show #question-section
@@ -57,7 +72,7 @@ startButton.addEventListener("click", (e) => {
   startTimer();
 });
 
-
+// starts the game clock
 function startTimer() {
   questionCounter = 0;
   renderQuestion(questionCounter); // start the questions
@@ -67,12 +82,11 @@ function startTimer() {
       renderScore();
       return;
     }
-    
+
     time--;
     timerSpan.textContent = time;
   }, 1000); // every second;
 } //end timer
-
 
 // renders score section
 function renderScore() {
@@ -80,19 +94,17 @@ function renderScore() {
   questionSection.classList.add("hidden");
   scoreSection.classList.remove("hidden");
   scoreSpan.textContent = `Right: ${right}    Wrong: ${wrong} `;
-
 }
 
-
-// renders question and choices takes in index 
-function renderQuestion(index) { 
+// renders question and choices takes in index
+function renderQuestion(index) {
   // if quiz is completed
   if (questionCounter === questionsArray.length) {
     renderScore();
     return;
   } else {
     questionHeading.textContent = questionsArray[index].question;
-  
+
     for (var i = 0; i < questionsArray[index].choices.length; i++) {
       var li = document.createElement("li");
       li.id = i;
@@ -102,34 +114,36 @@ function renderQuestion(index) {
   } // end else
 } // end renderQuestion()
 
-
 // removes choices that were generated for question
 function removeList() {
   // undefined if is falsy
   while (answerList.lastChild) {
     answerList.removeChild(answerList.lastChild);
   }
-  console.log("removed children");
 }
 
-
-// randomizes the questionsArray 
+// randomizes the questionsArray
 function randomizeQuestionsAnswers() {
   // randomizes order of questions and answers in questionsArray
-  questionsArray.sort(function(a,b) {return 0.5 - Math.random()});
+  questionsArray.sort(function(a, b) {
+    return 0.5 - Math.random();
+  });
   // randomly sort choices array for each question
   for (var i = 0; i < questionsArray.length; i++) {
-    questionsArray[i].choices.sort(function(a,b) {return 0.5 - Math.random()});
+    questionsArray[i].choices.sort(function(a, b) {
+      return 0.5 - Math.random();
+    });
   }
 }
 
-
+// call back for when question answer choice is clicked
 function answerClick(event) {
   var elem = event.target;
   if (elem.matches("li")) {
     if (elem.textContent === questionsArray[questionCounter].answer) {
-      answerResult.textContent = "Correct!"
+      answerResult.textContent = "Correct!";
       right++;
+      playerScore++;
     } else {
       // write incorrect and move on
       answerResult.textContent = "Wrong";
@@ -141,7 +155,58 @@ function answerClick(event) {
   }
 }
 
-answerList.addEventListener("click", answerClick);
+answerList.addEventListener("click", answerClick); // click on choice for question section
 
+initialsForm.addEventListener("submit", e => {
+  e.preventDefault(); // don't want reload
+  var playerName = initialsInput.value;
+  if (!playerName) {
+    return;
+  }
+  //console.log("name: " + playerName);
 
+  if (leaderboard.length < 50) {
+    leaderboard.push({ name: playerName, score: playerScore });
+    console.log("added");
+  } else {
+    if (playerScore > parseInt(leaderboard[leaderboard.length - 1].score)) {
+      leaderboard.pop();
+      leaderboard.push({ name: playerName, score: playerScore });
+      console.log("added");
+    }
+  }
+  sortLeaderboard();
 
+  localStorage.setItem("leaderboard", JSON.stringify(leaderboard)); // set it in local storage
+
+  scoreSection.classList.add("hidden");
+  leaderboardSection.classList.remove("hidden");
+  renderLeaderboard();
+});
+
+function renderLeaderboard() {
+  for (var i = 0; i < leaderboard.length; i++) {
+    var li = document.createElement("li");
+    li.setAttribute("data-index", i);
+    li.textContent = leaderboard[i].name;
+    var span = document.createElement("span");
+    span.textContent = leaderboard[i].score;
+    li.append(span);
+    leaderList.append(li);
+  }
+
+  console.log(leaderboard);
+}
+
+// has to be sorted in descending order
+function sortLeaderboard() {
+  leaderboard.sort((a, b) => {
+    if (a.score < b.score) {
+      return 1;
+    }
+    if (a.score > b.score) {
+      return -1;
+    }
+    return 0;
+  });
+}

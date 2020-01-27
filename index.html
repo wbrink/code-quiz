@@ -45,15 +45,17 @@
       <div id="score-section" class="hidden">
         <h3>All Done!</h3>
         <p>Your final score is <span class="score"></span></p>
-        <label for="intials"></label>
-        <input type="text" minlength="2" maxlength="4" required />
-        <input type="submit" value="Submit" />
+        <form action="" id="initials-form">
+          <label for="initials"></label>
+          <input type="text" name="initials" minlength="2" maxlength="4" required id="initials" />
+          <input type="submit" value="Submit" />
+        </form>
       </div>
 
       <!-- leaderboard -->
       <div id="leaderboard-section" class="hidden">
         <h3>HighScores</h3>
-        <ul class="scores-list"></ul>
+        <ul class="leader-list"></ul>
         <button>Go Back</button>
         <button>Clear High Scores</button>
       </div>
