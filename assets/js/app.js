@@ -16,6 +16,8 @@ var questionSection = document.querySelector("#question-section");
 var scoreSection = document.querySelector("#score-section");
 var leaderboardSection = document.querySelector("#leaderboard-section");
 var leaderList = document.querySelector(".leader-list");
+var clearLeadersButton = document.querySelector("#clear-leaderboard");
+var goBackButton = document.querySelector("#go-back");
 
 // app variables
 var questionCounter = 0;
@@ -23,8 +25,12 @@ var right = 0; // answered correctly
 var wrong = 0; // answered incorrectly
 
 var interval;
-var time = 30; //in seconds
+var perQuestionInterval;
+var time = 75; //in seconds
 var playerScore = 0;
+
+//variable to tell how much time it took to answer question
+var perQuestionTimer = 15;
 
 var leaderboard;
 
@@ -49,6 +55,11 @@ var questionsArray = [
     question: "A very useful tool used during development and debugging for printing content to the debugger is:",
     choices: ["JavaScript", "terminal/bash", "for loops", "console.log"],
     answer: "console.log"
+  },
+  {
+    question: "What is the name of a function parameter that takes a function",
+    choices: ["callback", "anonymous", "event handler", "alert"],
+    answer: "callback"
   }
 ];
 
@@ -78,7 +89,8 @@ function startTimer() {
   renderQuestion(questionCounter); // start the questions
   interval = setInterval(function() {
     // if times up: cleanup and show scoresection with score
-    if (time === 0) {
+    if (time <= 0) {
+      timerSpan.textContent = 0;
       renderScore();
       return;
     }
@@ -93,7 +105,7 @@ function renderScore() {
   clearInterval(interval); // stop timer
   questionSection.classList.add("hidden");
   scoreSection.classList.remove("hidden");
-  scoreSpan.textContent = `Right: ${right}    Wrong: ${wrong} `;
+  scoreSpan.textContent = playerScore;
 }
 
 // renders question and choices takes in index
@@ -111,8 +123,19 @@ function renderQuestion(index) {
       li.textContent = questionsArray[index].choices[i];
       answerList.append(li);
     }
-  } // end else
-} // end renderQuestion()
+  }
+
+  perQuestionTimer = 15;
+  // interval timer to tell how long to answer single question
+  perQuestionInterval = setInterval(function() {
+    if (perQuestionTimer == 0) {
+      clearInterval(perQuestionInterval);
+      console.log("here");
+    }
+    perQuestionTimer--;
+    console.log(perQuestionTimer);
+  }, 1000);
+}
 
 // removes choices that were generated for question
 function removeList() {
@@ -138,16 +161,20 @@ function randomizeQuestionsAnswers() {
 
 // call back for when question answer choice is clicked
 function answerClick(event) {
+  clearInterval(perQuestionInterval);
   var elem = event.target;
   if (elem.matches("li")) {
     if (elem.textContent === questionsArray[questionCounter].answer) {
       answerResult.textContent = "Correct!";
-      right++;
-      playerScore++;
+      if (perQuestionTimer >= 5) {
+        playerScore += 20; // 20 points for answering correct within 10 seconds
+      } else {
+        playerScore += 5; // 5 points for answering correct but taking longer than 10 seconds
+      }
     } else {
       // write incorrect and move on
+      time = time - 15;
       answerResult.textContent = "Wrong";
-      wrong++;
     }
     questionCounter++;
     removeList();
@@ -163,7 +190,6 @@ initialsForm.addEventListener("submit", e => {
   if (!playerName) {
     return;
   }
-  //console.log("name: " + playerName);
 
   if (leaderboard.length < 50) {
     leaderboard.push({ name: playerName, score: playerScore });
@@ -185,6 +211,7 @@ initialsForm.addEventListener("submit", e => {
 });
 
 function renderLeaderboard() {
+  time = 30;
   for (var i = 0; i < leaderboard.length; i++) {
     var li = document.createElement("li");
     li.setAttribute("data-index", i);
@@ -209,4 +236,21 @@ function sortLeaderboard() {
     }
     return 0;
   });
+}
+
+clearLeadersButton.addEventListener("click", e => {
+  localStorage.removeItem("leaderboard");
+  // console.log("leaderboard cleared");
+  removeAllChildren(leaderList);
+});
+
+goBackButton.addEventListener("click", function(e) {
+  leaderboardSection.classList.add("hidden");
+  startSection.classList.remove("hidden");
+});
+
+function removeAllChildren(element) {
+  while (element.lastChild) {
+    element.removeChild(element.lastChild);
+  }
 }
