@@ -25,8 +25,6 @@ var goBackButton = document.querySelector("#go-back");
 
 // app variables
 var questionCounter = 0;
-var right = 0; // answered correctly
-var wrong = 0; // answered incorrectly
 
 var interval;
 var perQuestionInterval;
@@ -35,11 +33,10 @@ var playerScore = 0;
 
 //variable to tell how much time it took to answer question
 var perQuestionTimer = 15;
+var feedbackTimer = 3;
+var feedbackInterval;
 
-var leaderboard;
-
-//handle leaderboard
-leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
+var leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
 
 if (leaderboard) {
   sortLeaderboard();
@@ -78,6 +75,7 @@ var questionsArray = [
 
 // start button listener
 startButton.addEventListener("click", e => {
+  removeAllChildren(answerList);
   playerScore = 0;
   perQuestionTimer = 15;
   time = 75;
@@ -104,6 +102,7 @@ startButton.addEventListener("click", e => {
 // starts the game clock
 function startTimer() {
   questionCounter = 0;
+
   renderQuestion(questionCounter); // start the questions
   interval = setInterval(function() {
     // if times up: cleanup and show scoresection with score
@@ -196,10 +195,12 @@ function randomizeQuestionsAnswers() {
 // call back for when question answer choice is clicked
 function answerClick(event) {
   clearInterval(perQuestionInterval);
+  clearInterval(feedbackInterval); // get rid of any outstanding intervals
   var elem = event.target;
   if (elem.matches("li")) {
     if (elem.getAttribute("choice") === questionsArray[questionCounter].answer) {
-      answerResult.textContent = "Correct!";
+      //answerResult.textContent = "Correct!";
+      showFeedback("Correct!");
       if (perQuestionTimer >= 5) {
         playerScore += 20; // 20 points for answering correct within 10 seconds
       } else {
@@ -208,7 +209,9 @@ function answerClick(event) {
     } else {
       // write incorrect and move on
       time = time - 15;
-      answerResult.textContent = "Wrong";
+
+      showFeedback("Wrong!");
+      //answerResult.textContent = "Wrong";
     }
     questionCounter++;
     removeList();
@@ -298,9 +301,23 @@ function removeAllChildren(element) {
 viewLeaderboard.addEventListener("click", e => {
   e.stopPropagation();
   e.preventDefault();
+  clearInterval(interval); // have to clear interval incase you quit the game midway through and view leaderboard
   startSection.classList.add("hidden");
   questionSection.classList.add("hidden");
   scoreSection.classList.add("hidden");
   renderLeaderboard();
   leaderboardSection.classList.remove("hidden");
 });
+
+// function will show whether correct or incorrect after choosing choice
+function showFeedback(result) {
+  feedbackTimer = 3;
+  answerResult.classList.remove("hidden");
+  answerResult.textContent = result;
+  feedbackInterval = setInterval(() => {
+    feedbackTimer--;
+    if (feedbackTimer == 0) {
+      answerResult.classList.add("hidden");
+    }
+  }, 1000);
+}

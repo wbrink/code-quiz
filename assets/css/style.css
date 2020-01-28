@@ -18,6 +18,10 @@ body {
   text-align: start;
 }
 
+#answer-result {
+  transition: all 1s;
+}
+
 @media screen and (max-width: 320px) {
   .btn-choice {
     width: 290px;
