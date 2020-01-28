@@ -170,14 +170,6 @@ function renderQuestion(index) {
   }, 1000);
 }
 
-// removes choices that were generated for question
-function removeList() {
-  // undefined if is falsy
-  while (answerList.lastChild) {
-    answerList.removeChild(answerList.lastChild);
-  }
-}
-
 // randomizes the questionsArray
 function randomizeQuestionsAnswers() {
   // randomizes order of questions and answers in questionsArray
@@ -214,7 +206,7 @@ function answerClick(event) {
       //answerResult.textContent = "Wrong";
     }
     questionCounter++;
-    removeList();
+    removeAllChildren(answerList);
     renderQuestion(questionCounter);
   }
 }
@@ -305,6 +297,14 @@ viewLeaderboard.addEventListener("click", e => {
   startSection.classList.add("hidden");
   questionSection.classList.add("hidden");
   scoreSection.classList.add("hidden");
+
+  leaderboard = JSON.parse(localStorage.getItem("leaderboard"));
+  if (leaderboard) {
+    sortLeaderboard();
+  } else {
+    leaderboard = [];
+  }
+
   renderLeaderboard();
   leaderboardSection.classList.remove("hidden");
 });
